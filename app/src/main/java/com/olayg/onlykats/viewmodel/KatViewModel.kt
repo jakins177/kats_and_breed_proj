@@ -1,6 +1,8 @@
 package com.olayg.onlykats.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.*
+import com.olayg.onlykats.model.Breed
 import com.olayg.onlykats.model.Kat
 import com.olayg.onlykats.model.request.Queries
 import com.olayg.onlykats.repo.KatRepo
@@ -9,17 +11,19 @@ import com.olayg.onlykats.util.EndPoint
 import com.olayg.onlykats.util.PageAction
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import javax.security.auth.login.LoginException
 
 // TODO: 9/10/21 Get the breedState from repo and load into the breedState livedata
 // TODO: 9/10/21 Once you the breedState from repo make sure you update isNextPage
 class KatViewModel : ViewModel() {
 
+    private  val TAG = "KatViewModel";
     private val _katState = MutableLiveData<ApiState<List<Kat>>>()
     val katState: LiveData<ApiState<List<Kat>>>
         get() = _katState
 
-    private val _breedState = MutableLiveData<ApiState<String>>()
-    val breedState: LiveData<ApiState<String>> get() = _breedState
+    private val _breedState = MutableLiveData<ApiState<List<Breed>>>()
+    val breedState: LiveData<ApiState<List<Breed>>> get() = _breedState
 
     // This lets us combine multiple livedata's into 1, I am using this to update settings anytime
     // the states change
@@ -35,6 +39,9 @@ class KatViewModel : ViewModel() {
 
     fun fetchData(queries: Queries) {
         this.queries = queries
+
+
+        Log.i(TAG, "the endpoint is ${queries.endPoint}: ")
         fetchData(PageAction.FIRST)
     }
 
@@ -63,7 +70,11 @@ class KatViewModel : ViewModel() {
 
     private fun getBreeds(queries: Queries) {
         viewModelScope.launch {
-            KatRepo.getBreedState(queries).collect {}
+            Log.i(TAG, "getBreeds called ")
+            KatRepo.getBreedState(queries).collect {breedState ->
+                Log.i(TAG, "got breed state with ${breedState}: ")
+                isNextPage = breedState !is ApiState.EndOfPage
+                _breedState.postValue(breedState)}
         }
     }
 

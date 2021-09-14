@@ -1,4 +1,4 @@
-package com.olayg.onlykats
+package com.olayg.onlyBREEDs
 
 import org.junit.Test
 
